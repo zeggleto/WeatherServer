@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>You think your weather sucks?</title>
+
+    <script type="text/javascript">
+        getLocation();
+        getHigh();
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendPosition, error => alert("Unable to track geo position"));
+            }
+            else {
+                console.log("GeoLocation not Supported");
+            }
+        }
+
+        function sendPosition(position) {
+            fetch("/localweather", {
+                body: JSON.stringify({
+                    lat: position.coords.latitude,
+                    long: position.coords.longitude
+                }),
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                method: "POST"
+            })
+                .then(response => response.json())
+                .then(data => document.getElementById("local").innerHTML = data.name + ": " + parseInt(data.main.temp))
+                .catch(error => console.log(error));
+        }
+
+        function getResult(category) {
+            fetch("/singleweather/" + category)
+                .then(response => response.json())
+                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.temp))
+                .catch(error => console.log(error));
+        }
+
+        function getHigh() {
+            fetch("/singleweather/hightemp")
+                .then(response => response.json())
+                .then(data => document.getElementById("high").innerHTML = data.name + ": " + parseInt(data.main.temp))
+                .catch(error => console.log(error));
+        }
+
+        function getLow() {
+            fetch("/singleweather/lowtemp")
+                .then(response => response.json())
+                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.temp))
+                .catch(error => console.log(error));
+        }
+
+        function getHighHumid() {
+            fetch("/singleweather/highhumid")
+                .then(response => response.json())
+                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.humidity))
+                .catch(error => console.log(error));
+        }
+
+        function getLowHumid() {
+            fetch("/singleweather/lowhumid")
+                .then(response => response.json())
+                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.humidity))
+                .catch(error => console.log(error));
+        }
+
+        function getAllWeather() {
+            fetch("/currentweather")
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (result) {
+                    document.getElementById("results").innerHTML = "";
+                    for (var i = 0; i < result.length; i++) {
+                        document.getElementById("results").innerHTML += result[i].name + ", " + result[i].state + ": " + parseInt(result[i].main.temp) + "<br>";
+                    }
+                })
+                .catch(function (error) {
+                    console.log("error happened");
+                });
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <button onclick="getAllWeather()">Check All Weather</button>
+        <button onclick="getResult('lowtemp')">Coldest City</button>
+        <button onclick="getResult('highhumid')">Highest Humidity</button>
+        <button onclick="getResult('lowhumid')">Lowest Humidity</button>
+        <div>
+            <div>
+                <h3>Your Weather</h3>
+                <div id="local"></div>
+            </div>
+            <div>
+                <h2>At least you don't live in:</h2>
+                <div id="high"></div>
+            </div>
+        </div>
+        <div>
+            <h3>Results</h3>
+            <div id="results"></div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
