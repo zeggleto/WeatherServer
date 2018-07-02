@@ -43,7 +43,8 @@
         function getResult(category) {
             fetch("/singleweather/" + category)
                 .then(response => response.json())
-                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.temp))
+                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(category == 'highhumid' ||
+                    category == 'lowhumid' ? data.main.humidity : data.main.temp))
                 .catch(error => console.log(error));
         }
 
@@ -51,27 +52,6 @@
             fetch("/singleweather/hightemp")
                 .then(response => response.json())
                 .then(data => document.getElementById("high").innerHTML = data.name + ": " + parseInt(data.main.temp))
-                .catch(error => console.log(error));
-        }
-
-        function getLow() {
-            fetch("/singleweather/lowtemp")
-                .then(response => response.json())
-                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.temp))
-                .catch(error => console.log(error));
-        }
-
-        function getHighHumid() {
-            fetch("/singleweather/highhumid")
-                .then(response => response.json())
-                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.humidity))
-                .catch(error => console.log(error));
-        }
-
-        function getLowHumid() {
-            fetch("/singleweather/lowhumid")
-                .then(response => response.json())
-                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(data.main.humidity))
                 .catch(error => console.log(error));
         }
 

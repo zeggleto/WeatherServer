@@ -1,5 +1,6 @@
 import json
 import requests
+import datetime
 
 # Contains ids and states for 125 cities in the US
 cities = (
@@ -134,11 +135,11 @@ sorted_by_temp = []
 sorted_by_humid = []
 
 
-def update_all():
+def update_all(init):
     print("Updating weather reports...")
-    for c in cities:
+    for city in cities:
         url = "http://api.openweathermap.org/data/2.5/weather?id=" + str(
-            c['id']) + "&APPID=5ccc58dedce73f6e956b4e063a2a9cfa"
+            city['id']) + "&APPID=5ccc58dedce73f6e956b4e063a2a9cfa"
         headers = {'Content-Type': 'application/json'}
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
@@ -146,11 +147,16 @@ def update_all():
             jsoned = json.loads(response.content.decode('utf-8'))
             fahrenheit = kelvin_to_fahrenheit(jsoned['main']['temp'])
             jsoned['main']['temp'] = fahrenheit
-            jsoned['state'] = c['state']
-            global_weather_bank.append(jsoned)
+            jsoned['state'] = city['state']
+            if init:
+                global_weather_bank.append(jsoned)
+            else:
+                for g in global_weather_bank:
+                    if g['id'] == city['id']:
+                        global_weather_bank[global_weather_bank.index(g)] = jsoned
         else:
-            print("error for " + str(c['id']) + str(c['state']))
-    print("Weather reports updated")
+            print("error for " + str(city['id']) + str(city['state']))
+    print("Weather reports updated " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     sort_by_temp()
     sort_by_humid()
 
@@ -185,6 +191,8 @@ def get_all_weather():
 
 
 def sort_by_temp():
+    global sorted_by_temp
+    sorted_by_temp = []
     for w in global_weather_bank:
         placed = False
 
@@ -203,6 +211,8 @@ def sort_by_temp():
 
 
 def sort_by_humid():
+    global sorted_by_humid
+    sorted_by_humid = []
     for w in global_weather_bank:
         placed = False
 
@@ -223,18 +233,3 @@ def sort_by_humid():
 def kelvin_to_fahrenheit(kelvin):
     fahrenheit = ((kelvin - 273) * (9 / 5)) + 32
     return fahrenheit
-
-# if __name__ == '__main__':
-#         weather = get_weather_info(c['id'])
-#         if weather is not None:
-#             weather_info.append(weather)
-#             # print(weather['name'] + ': ' + str(int((weather['main']['temp'] - 273) * (9 / 5)) + 32))
-#
-#     sort_by_temp()
-#     sort_by_humid()
-#     high_temp = int(kelvin_to_fahrenheit(sorted_by_temp[0]['main']['temp']))
-#     low_temp = int(kelvin_to_fahrenheit(sorted_by_temp[len(sorted_by_temp) - 1]['main']['temp']))
-#     print("Highest temp: " + sorted_by_temp[0]['name'] + " " + str(high_temp))
-#     print("Lowest temp: " + sorted_by_temp[len(sorted_by_temp) - 1]['name'] + " " + str(low_temp))
-#     print()
-#     print("Done!")
