@@ -36,7 +36,7 @@ def update():
 scheduler = BackgroundScheduler()
 scheduler.add_job(
     func=update,
-    trigger=IntervalTrigger(seconds=1200),
+    trigger=IntervalTrigger(seconds=600),
     id='printing_job',
     name='Update weather stats every 20 minutes',
     replace_existing=True)

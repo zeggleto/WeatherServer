@@ -43,8 +43,7 @@
         function getResult(category) {
             fetch("/singleweather/" + category)
                 .then(response => response.json())
-                .then(data => document.getElementById("results").innerHTML = data.name + ": " + parseInt(category == 'highhumid' ||
-                    category == 'lowhumid' ? data.main.humidity : data.main.temp))
+                .then(data => console.log(data))
                 .catch(error => console.log(error));
         }
 

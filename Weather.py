@@ -1,6 +1,7 @@
 import json
 import requests
 import datetime
+from meteocalc import heat_index
 
 # Contains ids and states for 125 cities in the US
 cities = (
@@ -133,6 +134,8 @@ cities = (
 global_weather_bank = []
 sorted_by_temp = []
 sorted_by_humid = []
+sorted_by_heat = []
+sorted_by_chill = []
 
 
 def update_all(init):
@@ -159,6 +162,8 @@ def update_all(init):
     print("Weather reports updated " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     sort_by_temp()
     sort_by_humid()
+    sort_by_heat()
+    sort_by_chill()
 
 
 def get_local_weather(lat, long):
@@ -170,6 +175,7 @@ def get_local_weather(lat, long):
         jsoned = json.loads(response.content.decode('utf-8'))
         fahrenheit = kelvin_to_fahrenheit(jsoned['main']['temp'])
         jsoned['main']['temp'] = fahrenheit
+        jsoned['main']['heat'] = calculate_heat_index(jsoned['main']['temp'], jsoned['main']['humidity'])
         return jsoned
 
 
@@ -178,7 +184,9 @@ def get_single_weather(city):
         'hightemp': sorted_by_temp[0],
         'lowtemp': sorted_by_temp[len(sorted_by_temp) - 1],
         'highhumid': sorted_by_humid[0],
-        'lowhumid': sorted_by_humid[len(sorted_by_humid) - 1]
+        'lowhumid': sorted_by_humid[len(sorted_by_humid) - 1],
+        'heat': sorted_by_heat[0],
+        'chill': sorted_by_chill[len(sorted_by_chill) - 1]
     }.get(city, {'response': 'Invalid answer'})
 
 
@@ -228,6 +236,57 @@ def sort_by_humid():
 
         if placed is not True:
             sorted_by_humid.append(w)
+
+
+def sort_by_heat():
+    global sorted_by_heat
+    sorted_by_heat = []
+    for w in global_weather_bank:
+        w['main']['heat'] = calculate_heat_index(w['main']['temp'], w['main']['humidity'])
+        placed = False
+
+        if len(sorted_by_heat) == 0:
+            sorted_by_heat.append(w)
+            continue
+
+        for s in sorted_by_heat:
+            if s['main']['heat'] < w['main']['heat']:
+                sorted_by_heat.insert(sorted_by_heat.index(s), w)
+                placed = True
+                break
+
+        if placed is not True:
+            sorted_by_heat.append(w)
+
+
+def sort_by_chill():
+    global sorted_by_chill
+    sorted_by_chill = []
+    for w in global_weather_bank:
+        w['main']['chill'] = calculate_wind_chill(w['main']['temp'], w['wind']['speed'])
+        placed = False
+
+        if len(sorted_by_chill) == 0:
+            sorted_by_chill.append(w)
+            continue
+
+        for s in sorted_by_chill:
+            if s['main']['chill'] < w['main']['chill']:
+                sorted_by_chill.insert(sorted_by_chill.index(s), w)
+                placed = True
+                break
+
+        if placed is not True:
+            sorted_by_chill.append(w)
+
+
+def calculate_heat_index(temp, humid):
+    return float(heat_index(temp, humid))
+
+
+def calculate_wind_chill(temp, speed):
+    speed *= 2.23694
+    return 35.74 + (0.6215 * temp) - 35.75 * (speed ** 0.16) + 0.4275 * temp * (speed ** 0.16)
 
 
 def kelvin_to_fahrenheit(kelvin):
